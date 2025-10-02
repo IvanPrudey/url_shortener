@@ -1,22 +1,43 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>url shortener</title>
-</head> 
-<body>
-    <h1>url shortener</h1>
-    {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-            {% for category, message in messages %}
-                <div class="alert {{ category }}">{{ message }}</div>
-            {% endfor %}
-        {% endif %}
-    {% endwith %}
-    <form action="/shorten" method="post">
-        <div class="form-group">
-            <input type="url" name="url" placeholder="Enter your long url here" required>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card shadow">
+                    <div class="card-body p-4">
+                        <h1 class="card-title text-center mb-4">url shortener</h1>
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                            {% if messages %}
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ category }} mb-3">
+                                        {{ message }}
+                                    </div>
+                                {% endfor %}
+                            {% endif %}
+                        {% endwith %}
+                        <form action="/shorten" method="post">
+                            <div class="mb-3">
+                                <input type="url" name="url" class="form-control form-control-lg" 
+                                       placeholder="Enter your long url here" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-lg w-100">
+                                shorten url
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
-        <button type="submit">convert in short url</button>
-    </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
