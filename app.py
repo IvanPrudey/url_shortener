@@ -34,9 +34,18 @@ def generate_short_code():
     characters = string.ascii_letters + string.digits
     return ''.join(random.choice(characters for _ in range(length)))
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
+
+
+def shorten_url():
+    pass
+
+
+def redirect_to_url():
+    pass
 
 
 if __name__ == '__main__':
