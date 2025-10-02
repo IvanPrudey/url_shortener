@@ -1,5 +1,7 @@
 db.sqlite3
 db.sqlite3-journal
+.db
+database.db
 
 .env
 .venv
@@ -10,3 +12,5 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+
+.gitignore
