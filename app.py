@@ -5,6 +5,15 @@ import string
 import sqlite3
 
 
+CREATE_QUERY = '''
+            CREATE TABLE IF NOT EXISTS urls (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                original_url TEXT NOT NULL,
+                short_code TEXT UNIQUE NOT NULL,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        '''
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
@@ -15,18 +24,14 @@ def get_db_connection():
     return connect
 
 
-def init_db():
-    connect = get_db_connection()
-    connect.execute('''
-        CREATE TABLE IF NOT EXISTS urls (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            original_url TEXT NOT NULL,
-            short_code TEXT UNIQUE NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    connect.commit()
-    connect.close()
+def init_db(create_query):
+    try:
+        with get_db_connection() as connect:
+            connect.execute(create_query)
+            connect.commit()
+            print('База данных успешно инициализирована')
+    except Exception as e:
+        print(f'Ошибка инициализации базы: {e}')
 
 
 def generate_short_code():
@@ -49,5 +54,5 @@ def redirect_to_url():
 
 
 if __name__ == '__main__':
-    init_db()
+    init_db(CREATE_QUERY)
     app.run(debug=True)
