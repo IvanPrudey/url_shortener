@@ -1,4 +1,8 @@
-from flask import Flask, render_template
+from flask import (Flask,
+                   flash,
+                   redirect,
+                   render_template,
+                   request)
 import os
 import random
 import string
@@ -14,6 +18,8 @@ CREATE_QUERY = '''
             )
         '''
 
+CREATE_INDEX_QUERY = 'CREATE INDEX IF NOT EXISTS idx_original_url ON urls(original_url)'
+
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
@@ -24,12 +30,13 @@ def get_db_connection():
     return connect
 
 
-def init_db(create_query):
+def init_db(create_query, index_query):
     try:
         with get_db_connection() as connect:
             connect.execute(create_query)
+            connect.execute(index_query)
             connect.commit()
-            print('База данных успешно инициализирована')
+            print('База данных успешно инициализирована с индексом')
     except Exception as e:
         print(f'Ошибка инициализации базы: {e}')
 
@@ -37,7 +44,7 @@ def init_db(create_query):
 def generate_short_code():
     length = 6
     characters = string.ascii_letters + string.digits
-    return ''.join(random.choice(characters for _ in range(length)))
+    return ''.join(random.choice(characters) for _ in range(length))
 
 
 @app.route('/')
@@ -45,14 +52,92 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/shorten', methods=['POST'])
 def shorten_url():
-    pass
+    original_url = request.form['url']
+
+    if not original_url:
+        flash('Введите url', 'ошибка')
+        return redirect('/')
+
+    if not original_url.startswith(('http://', 'https://')):
+        original_url = 'https://' + original_url
+
+    connect = get_db_connection()
+
+    try:
+        existing_url = connect.execute(
+            'SELECT short_code FROM urls WHERE original_url = ?',
+            (original_url,)
+        ).fetchone()
+
+        if existing_url:
+            short_code = existing_url['short_code']
+            short_url = f"{request.host_url}{short_code}"
+            flash(
+                f'Этот url уже был сокращен ранее! Короткий url: {short_url}',
+                'выполнено успешно')
+            connect.close()
+            return redirect('/')
+
+        short_code = generate_short_code()
+        connect.execute(
+            'INSERT INTO urls (original_url, short_code) VALUES (?, ?)',
+            (original_url, short_code)
+        )
+        connect.commit()
+        short_url = f"{request.host_url}{short_code}"
+        flash(f'Ваш короткий URL: {short_url}', 'выполнено успешно')
+
+    except sqlite3.IntegrityError:
+        connect.rollback()
+        short_code = generate_short_code()
+        try:
+            connect.execute(
+                'INSERT INTO urls (original_url, short_code) VALUES (?, ?)',
+                (original_url, short_code)
+            )
+            connect.commit()
+            short_url = f"{request.host_url}{short_code}"
+            flash(f'Ваш короткий url: {short_url}', 'выполнено успешно')
+        except sqlite3.IntegrityError:
+            connect.rollback()
+            while True:
+                short_code = generate_short_code()
+                try:
+                    connect.execute(
+                        'INSERT INTO urls (original_url, short_code) VALUES (?, ?)',
+                        (original_url, short_code)
+                    )
+                    connect.commit()
+                    short_url = f"{request.host_url}{short_code}"
+                    flash(
+                        f'Ваш короткий URL: {short_url}', 'выполнено успешно')
+                    break
+                except sqlite3.IntegrityError:
+                    connect.rollback()
+                    continue
+
+    finally:
+        connect.close()
+    return redirect('/')
 
 
-def redirect_to_url():
-    pass
+@app.route('/<short_code>')
+def redirect_to_url(short_code):
+    connect = get_db_connection()
+    url_data = connect.execute(
+        'SELECT original_url FROM urls WHERE short_code = ?', (short_code,)
+    ).fetchone()
+    connect.close()
+
+    if url_data:
+        return redirect(url_data['original_url'])
+    else:
+        flash('Короткий url не найден', 'ошибка')
+        return redirect('/')
 
 
 if __name__ == '__main__':
-    init_db(CREATE_QUERY)
+    init_db(CREATE_QUERY, CREATE_INDEX_QUERY)
     app.run(debug=True)
