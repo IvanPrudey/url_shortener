@@ -8,17 +8,8 @@ import random
 import string
 import sqlite3
 
+from constants_query import CREATE_INDEX_QUERY, CREATE_QUERY
 
-CREATE_QUERY = '''
-            CREATE TABLE IF NOT EXISTS urls (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                original_url TEXT NOT NULL,
-                short_code TEXT UNIQUE NOT NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        '''
-
-CREATE_INDEX_QUERY = 'CREATE INDEX IF NOT EXISTS idx_original_url ON urls(original_url)'
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
