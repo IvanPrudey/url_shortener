@@ -138,10 +138,13 @@ def redirect_to_url(short_code):
 
 @app.route('/status')
 def get_status():
-    connect = get_db_connection()
-    urls = connect.execute(SELECT_STATUS_QUERY).fetchall()
-    connect.close()
-    return render_template('status.html', urls=urls)
+    try:
+        with get_db_connection() as connect:
+            urls = connect.execute(SELECT_STATUS_QUERY).fetchall()
+        return render_template('status.html', urls=urls)
+    except Exception as e:
+        flash(f'Ошибка при получении статуса: {e}', 'ошибка')
+        return redirect('/')
 
 
 if __name__ == '__main__':
