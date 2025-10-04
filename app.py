@@ -8,7 +8,14 @@ import random
 import string
 import sqlite3
 
-from constants_query import CREATE_INDEX_QUERY, CREATE_QUERY
+from constants_query import (
+    CREATE_INDEX_QUERY,
+    CREATE_QUERY,
+    INSERT_URL_QUERY,
+    SELECT_EXISTING_URL_QUERY,
+    SELECT_REDIRECT_QUERY,
+    SELECT_STATUS_QUERY
+)
 
 
 app = Flask(__name__)
@@ -58,7 +65,7 @@ def shorten_url():
 
     try:
         existing_url = connect.execute(
-            'SELECT short_code FROM urls WHERE original_url = ?',
+            SELECT_EXISTING_URL_QUERY,
             (original_url,)
         ).fetchone()
 
@@ -73,7 +80,7 @@ def shorten_url():
 
         short_code = generate_short_code()
         connect.execute(
-            'INSERT INTO urls (original_url, short_code) VALUES (?, ?)',
+            INSERT_URL_QUERY,
             (original_url, short_code)
         )
         connect.commit()
@@ -85,7 +92,7 @@ def shorten_url():
         short_code = generate_short_code()
         try:
             connect.execute(
-                'INSERT INTO urls (original_url, short_code) VALUES (?, ?)',
+                INSERT_URL_QUERY,
                 (original_url, short_code)
             )
             connect.commit()
@@ -97,7 +104,7 @@ def shorten_url():
                 short_code = generate_short_code()
                 try:
                     connect.execute(
-                        'INSERT INTO urls (original_url, short_code) VALUES (?, ?)',
+                        INSERT_URL_QUERY,
                         (original_url, short_code)
                     )
                     connect.commit()
@@ -118,7 +125,7 @@ def shorten_url():
 def redirect_to_url(short_code):
     connect = get_db_connection()
     url_data = connect.execute(
-        'SELECT original_url FROM urls WHERE short_code = ?', (short_code,)
+        SELECT_REDIRECT_QUERY, (short_code,)
     ).fetchone()
     connect.close()
 
@@ -127,6 +134,14 @@ def redirect_to_url(short_code):
     else:
         flash('Короткий url не найден', 'ошибка')
         return redirect('/')
+
+
+@app.route('/status')
+def get_status():
+    connect = get_db_connection()
+    urls = connect.execute(SELECT_STATUS_QUERY).fetchall()
+    connect.close()
+    return render_template('status.html', urls=urls)
 
 
 if __name__ == '__main__':
