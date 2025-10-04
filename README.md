@@ -15,10 +15,10 @@ bootstrap
 ```
 
 ## Структура проекта
-app.py - основное приложение
-constants_query.py - SQL запросы
-templates/ - HTML шаблоны
-database.db - база данных, создается автоматически
+1. app.py - основное приложение
+2. constants_query.py - SQL запросы
+3. templates/ - HTML шаблоны
+4. database.db - база данных, создается автоматически
 
 ## Как запустить проект: 
 Клонировать репозиторий и перейти в него в командной строке: 
@@ -36,19 +36,21 @@ python -m venv venv
 ``` 
 source venv/Scripts/activate 
 ``` 
-``` 
-python -m pip install --upgrade pip 
-``` 
 
 Установить зависимости из файла requirements.txt: 
 ``` 
+python -m pip install --upgrade pip 
+``` 
+``` 
 pip install -r requirements.txt 
 ```
+
 Запустить приложение в bash
 ```
 python app.py
 ```
-Откройте в браузере:
+
+Открыть в браузере:
 ```
 http://localhost:5000
 ```
