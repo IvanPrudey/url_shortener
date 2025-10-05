@@ -14,3 +14,5 @@ env.bak/
 venv.bak/
 
 .gitignore
+
+__pycache__/
